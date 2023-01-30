@@ -129,7 +129,7 @@ Mesh:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: pb_Mesh17540
+  m_Name: pb_Mesh17924
   serializedVersion: 10
   m_SubMeshes:
   - serializedVersion: 2
@@ -599,7 +599,7 @@ GameObject:
   - component: {fileID: 1601231470}
   - component: {fileID: 1601231469}
   - component: {fileID: 1601231468}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Test Level
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -86311,9 +86311,12 @@ MonoBehaviour:
   moveSpeed: 5
   dashSpeed: 20
   dashTime: 0.2
+  environmentLayer:
+    serializedVersion: 2
+    m_Bits: 64
+  dashCheckRadius: 0.01
   playerVisuals: {fileID: 882075353}
   squashAmount: 0.4
-  testMarker: {fileID: 586640125733181886, guid: e5346c4e510b6db48b23d6815398c9c8, type: 3}
 --- !u!114 &1666192114
 MonoBehaviour:
   m_ObjectHideFlags: 0
