@@ -67,40 +67,30 @@ public class PlayerMovement : MonoBehaviour
                 //calculate end point
                 Vector3 dashDirection = GetRotatedDirectionFromInput(dashInputDirection);
 
-                //+ 0.001 on y axis to avoid collision with floor
-                float yOffset = dashCheckRadius + 0.001f;
+                int hitCount = 0;
+                //raycast positive direction
+                bool reachedDestination = false;
+                Vector3 raycastStart = new Vector3(transform.position.x, transform.position.y + 0.1f, transform.position.z);
+                Vector3 dashOffset = new Vector3(dashDirection.x * dashSpeed * dashTime, 0.0f, dashDirection.z * dashSpeed * dashTime);
+                Vector3 endPoint = transform.position + dashOffset + new Vector3(0f, 0.1f, 0f);
 
-                Vector3 endPointOffset = new Vector3(dashDirection.x * dashSpeed * dashTime, 0f, dashDirection.z * dashSpeed * dashTime);
-                
-                Vector3 endPoint = transform.position + endPointOffset;
-                
-                int checkCount = Mathf.FloorToInt(endPointOffset.magnitude / (2f * dashCheckRadius));
-
-                gizmosLocation = new Vector3[checkCount];
-                bool lastWasCollide = false;
-                for(int i = 0; i < checkCount; i++)
+                while (!reachedDestination)
                 {
-                    Vector3 thisCheckOffset = new Vector3(endPointOffset.x * ((float)i / (float)checkCount), yOffset, endPointOffset.z * ((float)i / (float)checkCount));
-                    Vector3 thisCheckLocation = transform.position + thisCheckOffset;
-                    Collider[] collidersAtPoint = Physics.OverlapSphere(thisCheckLocation, dashCheckRadius, environmentLayer, QueryTriggerInteraction.Ignore);
-                    
-
-                    
-                    if (collidersAtPoint.Length != 0)
+                    Vector3 raycastDirection = endPoint - raycastStart;
+                    RaycastHit hit;
+                    bool hasHit = Physics.Raycast(raycastStart, raycastDirection.normalized, out hit, raycastDirection.magnitude, environmentLayer);
+                    Debug.DrawRay(raycastStart, raycastDirection, Color.blue, 1.0f);
+                    if(hasHit)
                     {
-                        if(lastWasCollide == false)
-                        {
-                            Debug.Log(collidersAtPoint[0]);
-                        }
-                        gizmosLocation[i] = thisCheckLocation;
-                        lastWasCollide = true;
+                        hitCount++;
+                        raycastStart = hit.point;
+                        reachedDestination = true;
                     }
                     else
                     {
-                        lastWasCollide = false;
+                        reachedDestination = true;
                     }
                 }
-
 
 
 
@@ -108,6 +98,8 @@ public class PlayerMovement : MonoBehaviour
             }
         }
     }
+
+    
 
     private void OnDrawGizmos()
     {
