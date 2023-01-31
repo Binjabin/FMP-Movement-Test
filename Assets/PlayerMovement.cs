@@ -70,9 +70,9 @@ public class PlayerMovement : MonoBehaviour
                 //dash as far as possible, so need possible end points in reverse order
                 possibleDashPoints.Reverse();
 
-                bool foundDashLocation = false ;
+                bool foundDashLocation = false;
                 Debug.Log(possibleDashPoints.Count + " points to check");
-                for(int i = 0; i < possibleDashPoints.Count; i++)
+                for (int i = 0; i < possibleDashPoints.Count; i++)
                 {
                     if (!foundDashLocation)
                     {
@@ -186,7 +186,7 @@ public class PlayerMovement : MonoBehaviour
         raycastStart = endPoint;
         endPoint = new Vector3(location.x, location.y + 0.1f, location.z);
         dashOffset = -dashOffset;
-        
+
         while (!reachedDestination)
         {
             Vector3 raycastDirection = endPoint - raycastStart;
@@ -210,45 +210,6 @@ public class PlayerMovement : MonoBehaviour
         return (!(hitCount == 0));
     }
 
-
-    
-
-    private void OnDrawGizmos()
-    {
-        Gizmos.color = Color.red;
-        if(gizmosLocation != null)
-        {
-            for (int i = 0; i < gizmosLocation.Length; i++)
-            {
-                Gizmos.DrawSphere(gizmosLocation[i], dashCheckRadius);
-            }
-        }
-        
-    }
-
-    private void Update()
-    {
-        movementLocked = isDashing;
-
-        if (!movementLocked)
-        {
-            //normal movement
-            Vector3 moveDirection = GetRotatedDirectionFromInput(movementInput); 
-            DoMovement(moveDirection, moveSpeed);
-        }
-    }
-
-    void DoMovement(Vector3 direction, float speed)
-    {
-        if (direction.magnitude >= 1f)
-        {
-            direction = direction.normalized;
-        }
-        Vector3 desiredVelocity = new Vector3(direction.x * speed, rb.velocity.y, direction.z * speed);
-        rb.velocity = desiredVelocity;
-    }
-
-    //there is a better way of doing this probably
     Vector3 GetRotatedDirectionFromInput(Vector2 inDirection)
     {
         Vector3 inDirection3D = new Vector3(inDirection.x, 0f, inDirection.y);
@@ -286,7 +247,7 @@ public class PlayerMovement : MonoBehaviour
                 col.enabled = true;
             }
 
-            
+
             else if (timeSinceDash >= finishAfterTime)
             {
                 col.enabled = true;
@@ -308,6 +269,31 @@ public class PlayerMovement : MonoBehaviour
             playerVisuals.transform.localScale = new Vector3(horizontalScale, yScale, horizontalScale);
             yield return null;
         }
-        
+
     }
+
+
+
+    private void Update()
+    {
+        movementLocked = isDashing;
+
+        if (!movementLocked)
+        {
+            //normal movement
+            Vector3 moveDirection = GetRotatedDirectionFromInput(movementInput);
+            DoMovement(moveDirection, moveSpeed);
+        }
+    }
+
+    void DoMovement(Vector3 direction, float speed)
+    {
+        if (direction.magnitude >= 1f)
+        {
+            direction = direction.normalized;
+        }
+        Vector3 desiredVelocity = new Vector3(direction.x * speed, rb.velocity.y, direction.z * speed);
+        rb.velocity = desiredVelocity;
+    }
+
 }
