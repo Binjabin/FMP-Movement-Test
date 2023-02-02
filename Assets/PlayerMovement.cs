@@ -16,6 +16,7 @@ public class PlayerMovement : MonoBehaviour
     Collider col;
     [SerializeField] LayerMask environmentLayer;
     [SerializeField] float dashCheckRadius = 0.1f;
+    [SerializeField] float dashCheckResolution = 0.05f;
 
     [Header("Visuals Settings")]
     [SerializeField] GameObject playerVisuals;
@@ -65,12 +66,27 @@ public class PlayerMovement : MonoBehaviour
                 }
 
                 Vector3 dashDirection = GetRotatedDirectionFromInput(dashInputDirection);
-
                 List<Vector3> possibleDashPoints = GetPossibleDashEndPoints(transform.position, dashDirection);
-                //dash as far as possible, so need possible end points in reverse order
                 possibleDashPoints.Reverse();
 
+                //dash as far as possible, so need possible end points in reverse order
+
+
                 bool foundDashLocation = false;
+                float checkValue = 1.0f;
+                while (!foundDashLocation)
+                {
+                    checkValue -= dashCheckResolution;
+                    if (checkValue <= 0f)
+                    {
+                        foundDashLocation = true;
+                    }
+
+                }
+
+
+
+
                 Debug.Log(possibleDashPoints.Count + " points to check");
                 for (int i = 0; i < possibleDashPoints.Count; i++)
                 {
@@ -87,7 +103,15 @@ public class PlayerMovement : MonoBehaviour
                             if (collidersAtPoint.Length > 0)
                             {
                                 //overlaps at exact location
-                                //check slightly before
+                                //check slightly before: amount = (r / sin(theta)) where theta is the angle between the wall and the in vector
+                                //only worth doing this if the offset amount is under the distance between this and the start of the space
+                                //wall that you are checking might end so I will need to find some way of checking for this
+
+                                //perhaps just better to lerp back from the angle, performing a check every increment
+                                //may not be performant though
+
+                                //mabye need a way to access the point at which the space starts
+
                                 Vector3 beforePoint = possibleDashPoints[i] - (dashDirection.normalized * 0.3f);
                                 checkPoint = beforePoint + new Vector3(0f, 0.2f, 0f);
                                 if (!DashEndsInCollider(transform.position, beforePoint))
@@ -153,6 +177,8 @@ public class PlayerMovement : MonoBehaviour
         }
         return points;
     }
+
+
 
     bool DashEndsInCollider(Vector3 location, Vector3 endPoint)
     {
