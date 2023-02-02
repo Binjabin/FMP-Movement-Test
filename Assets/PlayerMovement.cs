@@ -17,6 +17,7 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] LayerMask environmentLayer;
     [SerializeField] float dashCheckRadius = 0.1f;
     [SerializeField] float dashCheckResolution = 0.05f;
+    [SerializeField] float playerColliderRadius = 0.25f;
 
     [Header("Visuals Settings")]
     [SerializeField] GameObject playerVisuals;
@@ -24,6 +25,8 @@ public class PlayerMovement : MonoBehaviour
     float timeSinceDash;
 
     Vector3[] gizmosLocation;
+
+
 
 
     private void Start()
@@ -64,89 +67,112 @@ public class PlayerMovement : MonoBehaviour
                 {
                     dashInputDirection = Vector2.zero;
                 }
-
                 Vector3 dashDirection = GetRotatedDirectionFromInput(dashInputDirection);
-                List<Vector3> possibleDashPoints = GetPossibleDashEndPoints(transform.position, dashDirection);
-                possibleDashPoints.Reverse();
-
+                Vector3 totalDashVector = dashDirection * dashSpeed * dashTime;
                 //dash as far as possible, so need possible end points in reverse order
 
 
                 bool foundDashLocation = false;
                 float checkValue = 1.0f;
+                Debug.Log("Start Dash Check");
                 while (!foundDashLocation)
                 {
-                    checkValue -= dashCheckResolution;
                     if (checkValue <= 0f)
                     {
                         foundDashLocation = true;
+                        checkValue = 0f;
+                        timeSinceDash = 0f;
+                        isDashing = true;
+                        foundDashLocation = true;
+
+                        StartCoroutine(Dash(transform.position));
                     }
-
-                }
-
-
-
-
-                Debug.Log(possibleDashPoints.Count + " points to check");
-                for (int i = 0; i < possibleDashPoints.Count; i++)
-                {
-                    if (!foundDashLocation)
+                    else
                     {
-                        Debug.Log("can " + i + " be dashed to? " + !DashEndsInCollider(transform.position, possibleDashPoints[i]));
+                        Vector3 directionOffset = totalDashVector * checkValue;
+                        Vector3 checkOffset = new Vector3(0f, playerColliderRadius + 0.001f, 0f);
+                        Vector3 playerLocationWithOffset = transform.position + checkOffset;
+                        Vector3 checkLocation = transform.position + checkOffset + directionOffset;
+                        Vector3 dashEndLocation = transform.position + directionOffset;
 
-                        if (!DashEndsInCollider(transform.position, possibleDashPoints[i]))
+                        //check if it is in a collider
+                        //probably a way to have to avoid doing this check for each location
+                        //and instead just do this once, and compare the values
+                        
+                        if (!DashEndsInCollider(playerLocationWithOffset, checkLocation))
                         {
-                            //check if location is withing distance of wall
-                            Vector3 checkPoint = possibleDashPoints[i] + new Vector3(0f, 0.2f, 0f);
-                            Collider[] collidersAtPoint = Physics.OverlapSphere(checkPoint, 0.25f, environmentLayer);
+                            //check if near enough to collider
 
-                            if (collidersAtPoint.Length > 0)
-                            {
-                                //overlaps at exact location
-                                //check slightly before: amount = (r / sin(theta)) where theta is the angle between the wall and the in vector
-                                //only worth doing this if the offset amount is under the distance between this and the start of the space
-                                //wall that you are checking might end so I will need to find some way of checking for this
+                            Collider[] collidersAtPoint = Physics.OverlapSphere(checkLocation, playerColliderRadius, environmentLayer);
 
-                                //perhaps just better to lerp back from the angle, performing a check every increment
-                                //may not be performant though
-
-                                //mabye need a way to access the point at which the space starts
-
-                                Vector3 beforePoint = possibleDashPoints[i] - (dashDirection.normalized * 0.3f);
-                                checkPoint = beforePoint + new Vector3(0f, 0.2f, 0f);
-                                if (!DashEndsInCollider(transform.position, beforePoint))
-                                {
-                                    collidersAtPoint = Physics.OverlapSphere(checkPoint, 0.25f, environmentLayer);
-                                    if (collidersAtPoint.Length > 0)
-                                    {
-                                        Debug.Log("No space at point " + i);
-                                    }
-                                    else
-                                    {
-                                        Debug.Log("Found space before wall at point " + i);
-                                        timeSinceDash = 0f;
-                                        isDashing = true;
-                                        foundDashLocation = true;
-                                        StartCoroutine(Dash(beforePoint));
-                                    }
-                                }
-                            }
-                            else
+                            //gizmosLocation = dashEndLocation;
+                            if (collidersAtPoint.Length == 0)
                             {
                                 timeSinceDash = 0f;
                                 isDashing = true;
                                 foundDashLocation = true;
-                                Debug.DrawLine(transform.position, possibleDashPoints[i], Color.red, 1f);
-                                StartCoroutine(Dash(possibleDashPoints[i]));
+
+                                StartCoroutine(Dash(dashEndLocation));
                             }
                         }
+
+
+                        checkValue -= dashCheckResolution;
                     }
                 }
-
-
             }
         }
     }
+
+    void OnDrawGizmos()
+    {
+
+        Gizmos.color = Color.yellow;
+        for (int i = 0; i < gizmosLocation.Length; i++)
+        {
+            Gizmos.DrawSphere(gizmosLocation[i], 0.1f);
+        }
+        
+        
+    }
+
+    //happy accident that made a dash to the top of collider mechanic
+    /*
+    bool foundDashLocation = false;
+    float checkValue = 1.0f;
+    while (!foundDashLocation)
+    {
+        if (checkValue <= 0f)
+        {
+            foundDashLocation = true;
+            checkValue = 0f;
+        }
+
+        Vector3 startPosition = transform.position += new Vector3(0f, playerColliderRadius + 0.001f, 0f);
+        Vector3 offset = dashDirection * checkValue;
+        Vector3 checkLocation = offset + startPosition;
+
+        //check if it is in a collider
+        //probably a way to have to avoid doing this check for each location
+        //and instead just do this once, and compare the values
+        if(!DashEndsInCollider(startPosition, checkLocation))
+        {
+            //check if near enough to collider
+            Collider[] collidersAtPoint = Physics.OverlapSphere(checkLocation, playerColliderRadius, environmentLayer);
+
+            if (collidersAtPoint.Length > 0)
+            {
+                timeSinceDash = 0f;
+                isDashing = true;
+                foundDashLocation = true;
+                StartCoroutine(Dash(checkLocation));
+            }
+        }
+
+                    
+        checkValue -= dashCheckResolution;
+    */
+
 
     List<Vector3> GetPossibleDashEndPoints(Vector3 location, Vector3 dashDirection)
     {
@@ -185,13 +211,14 @@ public class PlayerMovement : MonoBehaviour
         int hitCount = 0;
 
         //raycast positive direction
+        Vector3 raycastStart = location;
+        Vector3 raycastEnd = endPoint;
         bool reachedDestination = false;
-        Vector3 raycastStart = new Vector3(location.x, location.y + 0.1f, location.z);
-        Vector3 dashOffset = endPoint - raycastStart;
+        Vector3 dashOffset = raycastEnd - raycastStart;
 
         while (!reachedDestination)
         {
-            Vector3 raycastDirection = endPoint - raycastStart;
+            Vector3 raycastDirection = raycastEnd - raycastEnd;
             RaycastHit hit;
             bool hasHit = Physics.Raycast(raycastStart, raycastDirection.normalized, out hit, raycastDirection.magnitude, environmentLayer);
 
@@ -208,30 +235,32 @@ public class PlayerMovement : MonoBehaviour
         }
 
         //raycast backwards
-        reachedDestination = false;
+        
+        //swap
         raycastStart = endPoint;
-        endPoint = new Vector3(location.x, location.y + 0.1f, location.z);
-        dashOffset = -dashOffset;
+        raycastEnd = location;
+        reachedDestination = false;
+        dashOffset = raycastEnd - raycastStart;
 
         while (!reachedDestination)
         {
-            Vector3 raycastDirection = endPoint - raycastStart;
+            Vector3 raycastDirection = raycastEnd - raycastStart;
             RaycastHit hit;
             bool hasHit = Physics.Raycast(raycastStart, raycastDirection.normalized, out hit, raycastDirection.magnitude, environmentLayer);
+            
 
             if (hasHit)
             {
                 hitCount--;
+                
                 raycastStart = hit.point + dashOffset.normalized * 0.0001f;
-
-
             }
             else
             {
                 reachedDestination = true;
             }
         }
-
+        Debug.Log("Raycast check returns " + hitCount);
 
         return (!(hitCount == 0));
     }
