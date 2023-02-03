@@ -296,8 +296,6 @@ public class PlayerMovement : MonoBehaviour
             col.enabled = true;
             yScale = Mathf.SmoothStep(yMin, 1f, timeSinceDash / dashTime);
             horizontalScale = Mathf.SmoothStep(xMax, 1f, timeSinceDash / dashTime);
-            DoMovement(currentDashDirection, dashSpeed);
-            Debug.Break();
         }
 
         else
@@ -314,7 +312,7 @@ public class PlayerMovement : MonoBehaviour
 
     }
 
-    private void Update()
+    private void FixedUpdate()
     {
         movementLocked = isDashing;
 
