@@ -129,7 +129,7 @@ Mesh:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: pb_Mesh17046
+  m_Name: pb_Mesh20642
   serializedVersion: 10
   m_SubMeshes:
   - serializedVersion: 2
@@ -86507,8 +86507,10 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 64
   dashCheckRadius: 0.01
+  dashCheckResolution: 0.01
+  playerColliderRadius: 0.25
   playerVisuals: {fileID: 882075353}
-  squashAmount: 0.785
+  squashAmount: 0.3
 --- !u!114 &1666192114
 MonoBehaviour:
   m_ObjectHideFlags: 0
